@@ -2,7 +2,16 @@
   "appId": "app.indicador.midia",
   "appName": "Indicador de Mídia",
   "webDir": "www",
-  "backgroundColor": "#0f1115",
-  "server": { "androidScheme": "https" },
-  "plugins": { "CapacitorHttp": { "enabled": true } }
+  "backgroundColor": "#0d0f16",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  },
+  "android": {
+    "adjustMarginsForEdgeToEdge": "force"
+  }
 }

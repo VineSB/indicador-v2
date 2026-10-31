@@ -435,7 +435,7 @@ function save() {
   try { localStorage.setItem(KEY, JSON.stringify(S)); }
   catch (e) { toast('Não consegui salvar os dados neste aparelho'); }
 }
-const ui = { tab: 'inicio', filter: 'todos', q: '', exp: {}, pickType: 'all', mood: '', loading: false, gq: '', gres: null, gseq: 0 };
+const ui = { tab: 'inicio', filter: 'todos', q: '', exp: {}, pickType: 'all', mood: '', loading: false, gq: '', gres: null, gseq: 0, stage: '' };
 const keyOf = it => it.type + ':' + it.srcId;
 const get = it => S.items[keyOf(it)] || null;
 
@@ -566,13 +566,20 @@ async function pickModel() {
 async function geminiRaw(prompt, json) {
   if (!hasGemini()) throw new Error('NO_KEY');
   const model = await pickModel();
-  const body = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.8 } };
+  const body = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.8, maxOutputTokens: 1800 } };
   if (json) body.generationConfig.responseMimeType = 'application/json';
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+  const call = b => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': S.settings.geminiKey.trim() },
-    body: JSON.stringify(body)
+    body: JSON.stringify(b)
   });
+  body.generationConfig.thinkingConfig = { thinkingBudget: 0 };
+  let r = await call(body);
+  if (r.status === 400) {
+    delete body.generationConfig.thinkingConfig;
+    const r2 = await call(body);
+    if (r2.ok) r = r2;
+  }
   if (!r.ok) {
     let msg = 'Gemini ' + r.status;
     try { const e = await r.json(); if (e.error && e.error.message) msg += ': ' + e.error.message.slice(0, 140); } catch (e) {}
@@ -610,6 +617,7 @@ async function resolveTitle(s) {
 const norm = t => String(t || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 async function geminiTitles(prompt, wantType) {
   const raw = await geminiRaw(prompt, true);
+  ui.stage = 'Buscando as capas...'; if (ui.loading && ui.tab === 'pedir') render();
   const list = parseJson(raw);
   if (!Array.isArray(list)) throw new Error('Resposta do Gemini em formato inesperado.');
   const out = [];
@@ -860,7 +868,7 @@ function addSheet(status, titleTxt) {
 /* ====== indicações (Gemini) ====== */
 async function askPicks() {
   if (ui.loading) return;
-  ui.loading = true; render();
+  ui.loading = true; ui.stage = 'Consultando o Gemini...'; render();
   let ok = false;
   try {
     const items = Object.values(S.items);
@@ -946,7 +954,7 @@ function viewPedir() {
     h('label', { for: 'pTipo' }, 'Tipo'),
     h('select', { id: 'pTipo', onchange: e => { ui.pickType = e.target.value; } }, [['all', 'Qualquer'], ['filme', 'Filme'], ['serie', 'Série'], ['anime', 'Anime']].map(([v, l]) => h('option', { value: v, selected: v === ui.pickType }, l))),
     h('div', { class: 'btns' }, h('button', { class: 'btn', type: 'submit', disabled: ui.loading }, ui.loading ? h('span', { class: 'spin' }) : 'Indicar')),
-    h('p', { class: 'fine' }, ui.loading ? 'Pensando... leva alguns segundos.' : '')));
+    h('p', { class: 'fine' }, ui.loading ? (ui.stage || 'Consultando o Gemini...') : '')));
   return s;
 }
 

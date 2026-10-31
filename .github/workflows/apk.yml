@@ -30,8 +30,11 @@ jobs:
         run: npx cap add android
 
       - name: Ícone do app
-        continue-on-error: true
-        run: npx capacitor-assets generate --android
+        run: |
+          RES=android/app/src/main/res
+          rm -rf $RES/mipmap-* $RES/drawable-v24/ic_launcher_foreground.xml $RES/drawable/ic_launcher_background.xml
+          cp -r android-res/* $RES/
+          ls -R $RES | grep -c ic_launcher
 
       - name: Copiar o app para o Android
         run: npx cap sync android
