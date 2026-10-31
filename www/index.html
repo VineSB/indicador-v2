@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<title>Indicador de Mídia</title>
+<style>
+:root{--bg:#0f1115;--card:#181b22;--card2:#20242d;--line:#2a2f3a;--text:#eef0f4;--muted:#9aa3b2;--accent:#7c5cff;--anime:#ff7a59;--serie:#4cc9f0;--filme:#ffd166;--ok:#4ade80;--bad:#f87171;--nav:64px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+body{min-height:100vh;padding-top:env(safe-area-inset-top)}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 16px;background:linear-gradient(var(--bg) 70%,transparent)}
+header h1{margin:0;font-size:20px}
+main{padding:4px 16px calc(var(--nav) + 24px + env(safe-area-inset-bottom));max-width:720px;margin:0 auto}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;height:var(--nav);background:none;border:0;color:var(--muted);font:inherit;font-size:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+nav button .ic{font-size:20px;line-height:1}
+nav button.on{color:var(--text)}
+nav button.on .ic{filter:none}
+button,input,textarea,select{font:inherit;color:inherit}
+.btn{background:var(--accent);border:0;border-radius:12px;padding:10px 14px;font-weight:600;color:#fff}
+.btn.sec{background:var(--card2);color:var(--text);border:1px solid var(--line)}
+.btn.sm{padding:6px 10px;font-size:13px;border-radius:10px}
+.btn[disabled]{opacity:.5}
+.btn.danger{background:#3a1d22;color:var(--bad);border:1px solid #5b2a31}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0}
+.card h3{margin:0 0 6px;font-size:16px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;align-items:center;gap:10px}
+.row.wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+input[type=text],input[type=search],input[type=password],textarea{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px 12px;outline:none}
+input:focus,textarea:focus{border-color:var(--accent)}
+textarea{min-height:90px;resize:vertical}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:13px;color:var(--muted)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(min-width:560px){.grid{grid-template-columns:repeat(4,1fr)}}
+.tile{background:none;border:0;padding:0;text-align:left;min-width:0}
+.cover{position:relative;aspect-ratio:2/3;border-radius:12px;overflow:hidden;background:var(--card2);border:1px solid var(--line)}
+.cover img{width:100%;height:100%;object-fit:cover;display:block}
+.cover .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:8px;text-align:center;font-weight:700;font-size:13px;color:#fff;background:linear-gradient(135deg,#3b2f7a,#1d2f4a)}
+.tag{position:absolute;left:6px;top:6px;font-size:10px;font-weight:700;border-radius:6px;padding:2px 6px;color:#111}
+.tag.anime{background:var(--anime)}.tag.serie{background:var(--serie)}.tag.filme{background:var(--filme)}
+.badge{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.75);border-radius:8px;padding:2px 7px;font-size:12px;font-weight:700}
+.tile .nm{margin-top:6px;font-size:12px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.why{font-size:12px;color:var(--muted);margin-top:2px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.item{display:flex;gap:12px;align-items:center;width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px;margin:8px 0;text-align:left}
+.item .cover{width:56px;flex:none;border-radius:8px}
+.item.anime{border-left:4px solid var(--anime)}.item.serie{border-left:4px solid var(--serie)}.item.filme{border-left:4px solid var(--filme)}
+.item .t{font-weight:600}
+.empty{text-align:center;color:var(--muted);padding:28px 8px}
+.bar{height:8px;border-radius:6px;background:var(--card2);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent)}
+#sheetWrap{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
+#sheetWrap[hidden]{display:none}
+#sheet{background:var(--bg);width:100%;max-width:720px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;border:1px solid var(--line);padding:16px 16px calc(24px + env(safe-area-inset-bottom))}
+.sheetTop{display:flex;justify-content:flex-end;margin-bottom:6px}
+.hero{display:flex;gap:14px}
+.hero .cover{width:110px;flex:none}
+.rate{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.rate button{min-width:42px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-weight:700}
+.rate button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.hscroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px}
+.hscroll .tile{width:92px;flex:none}
+.fab{position:fixed;right:18px;bottom:calc(var(--nav) + 18px + env(safe-area-inset-bottom));z-index:7;width:54px;height:54px;border-radius:50%;border:0;background:var(--accent);color:#fff;font-size:30px;line-height:1;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav) + 24px + env(safe-area-inset-bottom));z-index:30;background:#000c;border:1px solid var(--line);padding:10px 14px;border-radius:12px;max-width:88%;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid #fff4;border-top-color:#fff;border-radius:50%;animation:s .7s linear infinite;vertical-align:-3px}
+@keyframes s{to{transform:rotate(360deg)}}
+.cd{font-weight:700}
+.type-anime{color:var(--anime)}.type-serie{color:var(--serie)}.type-filme{color:var(--filme)}
+details summary{cursor:pointer;color:var(--muted)}
+a{color:#a99bff}
+label.f{display:block;margin:12px 0 4px;font-weight:600}
+#tour{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;padding:calc(16px + env(safe-area-inset-top)) 20px calc(16px + env(safe-area-inset-bottom));overflow:auto}
+#tour[hidden]{display:none}
+#tour .inner{flex:1;max-width:560px;width:100%;margin:0 auto;display:flex;flex-direction:column}
+#tour h2{font-size:26px;margin:18px 0 8px}
+#tour p{margin:8px 0}
+#tour .big{font-size:56px;line-height:1;margin-top:8px}
+.dots{display:flex;gap:6px}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--accent);width:22px;border-radius:6px}
+.tourTop{display:flex;justify-content:space-between;align-items:center;min-height:36px}
+.tourFoot{display:flex;gap:10px;margin-top:20px}
+.tourFoot .btn{flex:1;padding:13px}
+.tstep{display:flex;gap:12px;margin:12px 0;align-items:flex-start}
+.tstep .n{flex:none;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
+.tstep .ic{flex:none;width:34px;font-size:26px;text-align:center}
+.msg{margin-top:8px;font-size:13px;min-height:18px}
+.msg.ok{color:var(--ok)}.msg.err{color:var(--bad)}
+</style>
+</head>
+<body>
+<header><h1 id="title">Indicador</h1><div id="topActions"></div></header>
+<main id="view"></main>
+<nav id="nav"></nav>
+<div id="sheetWrap" hidden><div id="sheet"></div></div>
+<div id="tour" hidden></div>
+<div id="toast"></div>
+<script>
+'use strict';
+/* ====== utilidades ====== */
+const $ = (s, r = document) => r.querySelector(s);
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v === false || v == null) continue;
+    if (k === 'class') e.className = v;
+    else if (k === 'style') e.style.cssText = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? '' : v);
+  }
+  for (const c of kids.flat(Infinity)) {
+    if (c == null || c === false) continue;
+    e.append(c.nodeType ? c : document.createTextNode(String(c)));
+  }
+  return e;
+}
+const enc = encodeURIComponent;
+function strip(html) {
+  if (!html) return '';
+  const t = document.createElement('div');
+  t.innerHTML = String(html).replace(/<br\s*\/?>/gi, '\n');
+  return (t.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
+}
+function toast(msg, ms = 2600) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('on'), ms);
+}
+const TYPES = {
+  anime: { label: 'Anime', plural: 'Animes' },
+  serie: { label: 'Série', plural: 'Séries' },
+  filme: { label: 'Filme', plural: 'Filmes' }
+};
+const RATINGS = [0, 1, 2, 3, 4, 5, '5+'];
+const rv = r => (r === '5+' ? 6 : Number(r));
+
+/* ====== estado (salvo só neste aparelho) ====== */
+const KEY = 'indicador_v2';
+function load() {
+  try {
+    const j = JSON.parse(localStorage.getItem(KEY));
+    if (j && j.items) return Object.assign({ settings: {}, history: [], picks: [] }, j);
+  } catch (e) {}
+  return { v: 2, items: {}, settings: {}, history: [], picks: [] };
+}
+let S = load();
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(S)); }
+  catch (e) { toast('Não consegui salvar os dados neste aparelho'); }
+}
+const ui = { tab: 'home', listTab: 'watched', filter: 'all', limit: 24, pickType: 'all', mood: '', loading: false, searchQ: '', searchRes: null, searchBusy: false };
+const keyOf = it => it.type + ':' + it.srcId;
+const get = it => S.items[keyOf(it)] || null;
+
+/* ====== rede ====== */
+async function jget(url, opt) {
+  const r = await fetch(url, opt);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+async function gql(query, variables) {
+  const r = await fetch('https://graphql.anilist.co', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ query, variables })
+  });
+  if (!r.ok) throw new Error('AniList ' + r.status);
+  const j = await r.json();
+  if (j.errors) throw new Error(j.errors[0].message);
+  return j.data;
+}
+
+/* --- animes: AniList (grátis, sem chave) --- */
+const ANI = 'id title{romaji english} seasonYear coverImage{large} description(asHtml:false) genres status trailer{id site} nextAiringEpisode{airingAt episode}';
+function normAni(m) {
+  return {
+    type: 'anime', src: 'ani', srcId: String(m.id),
+    title: (m.title && (m.title.english || m.title.romaji)) || '?',
+    year: m.seasonYear || null,
+    cover: m.coverImage && m.coverImage.large,
+    synopsis: strip(m.description), genres: m.genres || [],
+    trailer: m.trailer && m.trailer.site === 'youtube' ? 'https://www.youtube.com/watch?v=' + m.trailer.id : null,
+    next: m.nextAiringEpisode ? { at: m.nextAiringEpisode.airingAt * 1000, ep: 'Ep. ' + m.nextAiringEpisode.episode } : null,
+    apiStatus: m.status || null
+  };
+}
+async function searchAnime(q) {
+  const d = await gql(`query($q:String){Page(perPage:12){media(search:$q,type:ANIME,sort:SEARCH_MATCH){${ANI}}}}`, { q });
+  return d.Page.media.map(normAni);
+}
+async function refreshAnime(it) {
+  const d = await gql('query($id:Int){Media(id:$id){status nextAiringEpisode{airingAt episode}}}', { id: Number(it.srcId) });
+  const m = d.Media;
+  return { next: m.nextAiringEpisode ? { at: m.nextAiringEpisode.airingAt * 1000, ep: 'Ep. ' + m.nextAiringEpisode.episode } : null, apiStatus: m.status };
+}
+async function similarAnime(it) {
+  const d = await gql(`query($id:Int){Media(id:$id){recommendations(perPage:10,sort:RATING_DESC){nodes{mediaRecommendation{${ANI}}}}}}`, { id: Number(it.srcId) });
+  return d.Media.recommendations.nodes.map(n => n.mediaRecommendation).filter(Boolean).map(normAni);
+}
+
+/* --- séries: TVmaze (grátis, sem chave) --- */
+function normShow(s) {
+  return {
+    type: 'serie', src: 'tvm', srcId: String(s.id), title: s.name,
+    year: s.premiered ? Number(s.premiered.slice(0, 4)) : null,
+    cover: s.image && (s.image.medium || s.image.original),
+    synopsis: strip(s.summary), genres: s.genres || [], trailer: null, next: null, apiStatus: s.status || null
+  };
+}
+async function searchSerie(q) {
+  const r = await jget('https://api.tvmaze.com/search/shows?q=' + enc(q));
+  return r.slice(0, 12).map(x => normShow(x.show));
+}
+async function refreshSerie(it) {
+  const s = await jget(`https://api.tvmaze.com/shows/${it.srcId}?embed=nextepisode`);
+  const ne = s._embedded && s._embedded.nextepisode;
+  return {
+    next: ne && ne.airstamp ? { at: Date.parse(ne.airstamp), ep: ne.number ? `T${ne.season}E${ne.number}` : null } : null,
+    apiStatus: s.status
+  };
+}
+
+/* --- filmes: TMDB (chave grátis opcional) ou IMDb (sem chave, só busca/capa) --- */
+const TM_GENRES = { 28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance', 878: 'Sci-Fi', 53: 'Thriller', 10752: 'War', 37: 'Western' };
+async function tmdb(path, params) {
+  const key = (S.settings.tmdbKey || '').trim();
+  const url = new URL('https://api.themoviedb.org/3' + path);
+  url.searchParams.set('language', 'pt-BR');
+  for (const [k, v] of Object.entries(params || {})) url.searchParams.set(k, v);
+  const opt = {};
+  if (key.length > 40) opt.headers = { Authorization: 'Bearer ' + key };
+  else url.searchParams.set('api_key', key);
+  return jget(url.toString(), opt);
+}
+function normTm(m) {
+  return {
+    type: 'filme', src: 'tmdb', srcId: String(m.id), title: m.title,
+    year: m.release_date ? Number(m.release_date.slice(0, 4)) : null,
+    cover: m.poster_path ? 'https://image.tmdb.org/t/p/w342' + m.poster_path : null,
+    synopsis: m.overview || '', genres: (m.genre_ids || []).map(i => TM_GENRES[i]).filter(Boolean), trailer: null, next: null
+  };
+}
+async function searchFilme(q) {
+  if ((S.settings.tmdbKey || '').trim()) {
+    const j = await tmdb('/search/movie', { query: q, include_adult: 'false' });
+    return (j.results || []).slice(0, 12).map(normTm);
+  }
+  const s = q.trim().toLowerCase();
+  const first = (s.match(/[a-z0-9]/) || ['x'])[0];
+  const j = await jget(`https://v2.sg.media-imdb.com/suggestion/${first}/${enc(s)}.json`);
+  return (j.d || []).filter(x => x.qid === 'movie' || x.qid === 'tvMovie').slice(0, 12).map(x => ({
+    type: 'filme', src: 'imdb', srcId: x.id, title: x.l, year: x.y || null,
+    cover: x.i && x.i.imageUrl, synopsis: '', genres: [], trailer: null, next: null
+  }));
+}
+async function similarFilme(it) {
+  const j = await tmdb(`/movie/${it.srcId}/similar`);
+  return (j.results || []).slice(0, 10).map(normTm);
+}
+const SEARCHERS = { anime: searchAnime, serie: searchSerie, filme: searchFilme };
+
+/* --- Gemini (chave grátis do próprio usuário) --- */
+function hasGemini() { return !!(S.settings.geminiKey || '').trim(); }
+async function pickModel() {
+  const manual = (S.settings.model || '').trim();
+  if (manual) return manual;
+  if (S.settings.autoModel) return S.settings.autoModel;
+  let model = 'gemini-2.5-flash';
+  try {
+    const j = await jget('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', { headers: { 'x-goog-api-key': S.settings.geminiKey.trim() } });
+    const ok = (j.models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent') && /^models\/gemini-[\d.]+-flash$/.test(m.name));
+    ok.sort((a, b) => parseFloat(b.name.match(/gemini-([\d.]+)-flash/)[1]) - parseFloat(a.name.match(/gemini-([\d.]+)-flash/)[1]));
+    if (ok.length) model = ok[0].name.replace('models/', '');
+  } catch (e) {}
+  S.settings.autoModel = model;
+  save();
+  return model;
+}
+async function geminiRaw(prompt, json) {
+  if (!hasGemini()) throw new Error('NO_KEY');
+  const model = await pickModel();
+  const body = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.8 } };
+  if (json) body.generationConfig.responseMimeType = 'application/json';
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': S.settings.geminiKey.trim() },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) {
+    let msg = 'Gemini ' + r.status;
+    try { const e = await r.json(); if (e.error && e.error.message) msg += ': ' + e.error.message.slice(0, 140); } catch (e) {}
+    if (r.status === 404) { S.settings.autoModel = ''; save(); }
+    const err = new Error(msg); err.status = r.status; throw err;
+  }
+  const j = await r.json();
+  const parts = j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts;
+  const text = (parts || []).map(p => p.text || '').join('');
+  if (!text) throw new Error('O Gemini não respondeu nada. Tente de novo.');
+  return text;
+}
+function parseJson(t) {
+  const s = t.replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+  try { return JSON.parse(s); } catch (e) {}
+  const m = s.match(/\[[\s\S]*\]/);
+  if (m) return JSON.parse(m[0]);
+  throw new Error('Resposta do Gemini em formato inesperado.');
+}
+function friendlyErr(e) {
+  if (e.message === 'NO_KEY') return 'Configure a chave do Gemini nos Ajustes.';
+  if (e.status === 429) return 'Limite gratuito do Gemini atingido por agora. Tente de novo em alguns minutos.';
+  if (e.status === 400 || e.status === 403) return 'O Gemini recusou a chave. Confira se ela foi colada inteira nos Ajustes.';
+  return e.message || 'Algo deu errado.';
+}
+async function resolveTitle(s) {
+  const type = TYPES[s.type] ? s.type : null;
+  if (!type || !s.title) return null;
+  const res = await SEARCHERS[type](String(s.title)).catch(() => []);
+  if (!res.length) return null;
+  const y = Number(s.year);
+  const best = (y && res.find(r => r.year && Math.abs(r.year - y) <= 1)) || res[0];
+  return best;
+}
+const norm = t => String(t || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+async function geminiTitles(prompt, wantType) {
+  const raw = await geminiRaw(prompt, true);
+  const list = parseJson(raw);
+  if (!Array.isArray(list)) throw new Error('Resposta do Gemini em formato inesperado.');
+  const out = [];
+  const seen = new Set();
+  const found = await Promise.all(list.slice(0, 20).map(async s => {
+    const r = await resolveTitle({ type: wantType || s.type, title: s.title, year: s.year });
+    return r ? { r, why: s.why || '' } : null;
+  }));
+  for (const f of found) {
+    if (!f) continue;
+    const k = keyOf(f.r);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(Object.assign({}, f.r, { why: f.why }));
+  }
+  return out;
+}
+async function similar(it) {
+  try {
+    if (it.src === 'ani') return await similarAnime(it);
+    if (it.src === 'tmdb') return await similarFilme(it);
+  } catch (e) {}
+  if (!hasGemini()) throw new Error('Para ver parecidos de séries e filmes sem chave TMDB, configure o Gemini nos Ajustes.');
+  const prompt = `Liste 8 ${TYPES[it.type].plural.toLowerCase()} parecidos com "${it.title}"${it.year ? ' (' + it.year + ')' : ''}. Só títulos reais, usando o nome internacional mais conhecido. Responda APENAS um JSON: [{"type":"${it.type}","title":"...","year":2020}]`;
+  const r = await geminiTitles(prompt, it.type);
+  return r.filter(x => keyOf(x) !== keyOf(it));
+}
+
+/* ====== lista do usuário ====== */
+function upsert(it, patch) {
+  const k = keyOf(it);
+  const base = S.items[k] || { addedAt: Date.now() };
+  const clean = Object.assign({}, it); delete clean.why;
+  S.items[k] = Object.assign(base, clean, patch);
+  save();
+  return S.items[k];
+}
+function setStatus(it, status) {
+  const cur = upsert(it, { status });
+  if ((status === 'watching' || status === 'waiting') && cur.type !== 'filme') refreshOne(cur);
+  return cur;
+}
+function rate(it, r) {
+  upsert(it, { status: 'watched', rating: r, ratedAt: Date.now() });
+  toast('Nota ' + r + ' salva. Marcado como assistido.');
+}
+function removeItem(it) { delete S.items[keyOf(it)]; save(); }
+const byStatus = st => Object.values(S.items).filter(i => i.status === st);
+
+async function refreshOne(it) {
+  try {
+    const r = it.type === 'anime' ? await refreshAnime(it) : it.type === 'serie' ? await refreshSerie(it) : null;
+    if (r && S.items[keyOf(it)]) { Object.assign(S.items[keyOf(it)], r, { checkedAt: Date.now() }); save(); }
+  } catch (e) {}
+}
+async function refreshTracked(force) {
+  const list = [...byStatus('watching'), ...byStatus('waiting')].filter(i => i.type !== 'filme' && (force || !i.checkedAt || Date.now() - i.checkedAt > 3 * 3600e3));
+  for (const it of list) await refreshOne(it);
+  if (list.length && (ui.tab === 'week' || ui.tab === 'lists')) render();
+}
+
+/* ====== formatação ====== */
+function whenStr(ts) {
+  const d = new Date(ts), n = new Date();
+  if (ts < Date.now()) return 'já lançou';
+  const day = x => Date.UTC(x.getFullYear(), x.getMonth(), x.getDate());
+  const dd = Math.round((day(d) - day(n)) / 864e5);
+  const hm = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  if (dd === 0) return 'hoje às ' + hm;
+  if (dd === 1) return 'amanhã às ' + hm;
+  return d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }) + ' às ' + hm;
+}
+function countdown(ts) {
+  const m = Math.max(0, Math.floor((ts - Date.now()) / 6e4));
+  const d = Math.floor(m / 1440), hh = Math.floor((m % 1440) / 60), mm = m % 60;
+  return d ? `${d}d ${hh}h` : hh ? `${hh}h ${mm}min` : `${mm}min`;
+}
+function youtubeUrl(it) { return it.trailer || 'https://www.youtube.com/results?search_query=' + enc(it.title + ' ' + (it.year || '') + ' trailer'); }
+
+/* ====== componentes ====== */
+function coverEl(it, opts = {}) {
+  const box = h('div', { class: 'cover' });
+  const ph = h('div', { class: 'ph' }, it.title);
+  box.append(ph);
+  if (it.cover) {
+    const img = h('img', { src: it.cover, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' });
+    img.addEventListener('load', () => ph.remove());
+    img.addEventListener('error', () => img.remove());
+    box.append(img);
+  }
+  if (!opts.noTag) box.append(h('span', { class: 'tag ' + it.type }, TYPES[it.type].label));
+  const own = get(it);
+  if (opts.badge !== false && own && own.rating != null) box.append(h('span', { class: 'badge' }, '★ ' + own.rating));
+  return box;
+}
+function tile(it, showWhy) {
+  return h('button', { class: 'tile', onclick: () => openDetail(it) },
+    coverEl(it), h('div', { class: 'nm' }, it.title + (it.year ? ' (' + it.year + ')' : '')),
+    showWhy && it.why ? h('div', { class: 'why' }, it.why) : null);
+}
+function rowItem(it, extra) {
+  return h('div', { class: 'item ' + it.type, role: 'button', tabindex: '0', onclick: () => openDetail(it) },
+    coverEl(it, { noTag: true, badge: false }),
+    h('div', { class: 'grow' }, h('div', { class: 't' }, it.title), h('div', { class: 'small muted' }, TYPES[it.type].label + (it.year ? ' • ' + it.year : '')), extra));
+}
+function chips(options, current, onPick) {
+  return h('div', { class: 'chips' }, options.map(([v, l]) => h('button', { class: 'chip' + (v === current ? ' on' : ''), onclick: () => onPick(v) }, l)));
+}
+
+/* ====== detalhe (sheet) ====== */
+function closeSheet() { $('#sheetWrap').hidden = true; $('#sheet').replaceChildren(); render(); }
+$('#sheetWrap').addEventListener('click', e => { if (e.target.id === 'sheetWrap') closeSheet(); });
+function openDetail(it0) {
+  const it = get(it0) || it0;
+  const cur = () => get(it) || it;
+  const sheet = $('#sheet');
+  $('#sheetWrap').hidden = false;
+  const own = get(it);
+  const body = h('div');
+  const syn = h('p', { class: 'small', style: 'white-space:pre-wrap' }, it.synopsis || 'Sem sinopse disponível.');
+  const simBox = h('div');
+  const rateRow = h('div', { class: 'rate' }, RATINGS.map(r => h('button', {
+    class: own && own.rating === r ? 'on' : '',
+    onclick: () => { rate(it, r); openDetail(it); }
+  }, String(r))));
+  const stBtn = (st, label) => h('button', { class: 'btn sec sm' + (own && own.status === st ? ' on' : ''), style: own && own.status === st ? 'border-color:var(--accent)' : '', onclick: () => { setStatus(it, st); toast(label); openDetail(it); } }, label);
+  const aiBtns = [];
+  if (hasGemini()) {
+    aiBtns.push(h('button', { class: 'btn sec sm', onclick: async ev => {
+      const b = ev.currentTarget; b.disabled = true; b.textContent = '...';
+      try {
+        const p = it.synopsis
+          ? `Traduza e resuma em português do Brasil, em no máximo 4 frases, a sinopse de "${it.title}":\n${it.synopsis}`
+          : `Escreva em português do Brasil, em no máximo 4 frases e sem spoilers, a sinopse de ${TYPES[it.type].label.toLowerCase()} "${it.title}"${it.year ? ' (' + it.year + ')' : ''}. Se não conhecer o título, diga isso.`;
+        const t = (await geminiRaw(p, false)).trim();
+        syn.textContent = t;
+        if (get(it)) { S.items[keyOf(it)].synopsis = t; save(); }
+        b.remove();
+      } catch (e) { toast(friendlyErr(e)); b.disabled = false; b.textContent = it.synopsis ? 'Traduzir sinopse' : 'Gerar sinopse'; }
+    } }, it.synopsis ? 'Traduzir sinopse' : 'Gerar sinopse'));
+  }
+  body.append(
+    h('div', { class: 'sheetTop' }, h('button', { class: 'btn sec sm', onclick: closeSheet }, 'Fechar')),
+    h('div', { class: 'hero' }, coverEl(it, { badge: false }),
+      h('div', { class: 'grow' },
+        h('h2', { style: 'margin:0 0 4px;font-size:19px' }, it.title),
+        h('div', { class: 'small muted' }, [TYPES[it.type].label, it.year, (it.genres || []).slice(0, 3).join(', ')].filter(Boolean).join(' • ')),
+        own && own.status ? h('div', { class: 'small', style: 'margin-top:6px' }, { watched: 'Já assisti', queue: 'Na fila', waiting: 'Aguardando', watching: 'Assistindo agora' }[own.status]) : null,
+        it.next ? h('div', { class: 'small', style: 'margin-top:6px' }, 'Próximo: ' + [it.next.ep, whenStr(it.next.at)].filter(Boolean).join(' • ')) : null)),
+    syn,
+    h('div', { class: 'row wrap' }, aiBtns, h('a', { class: 'btn sm', style: 'text-decoration:none', href: youtubeUrl(it), target: '_blank', rel: 'noopener' }, '▶ Trailer')),
+    h('h3', { style: 'margin:16px 0 0' }, 'Dar nota (marca como assistido)'),
+    rateRow,
+    h('div', { class: 'small muted' }, '5+ = amou e assistiria de novo'),
+    h('div', { class: 'row wrap', style: 'margin-top:14px' },
+      stBtn('queue', 'Quero ver'), stBtn('watching', 'Assistindo agora'), stBtn('waiting', 'Aguardando'),
+      own ? h('button', { class: 'btn danger sm', onclick: () => { removeItem(it); toast('Removido'); closeSheet(); } }, 'Remover') : null),
+    h('h3', { style: 'margin:18px 0 6px' }, 'Parecidos'),
+    simBox);
+  const loadSim = h('button', { class: 'btn sec sm', onclick: async ev => {
+    const b = ev.currentTarget; b.disabled = true; b.replaceChildren(h('span', { class: 'spin' }));
+    try {
+      const list = await similar(cur());
+      if (!list.length) throw new Error('Não achei parecidos.');
+      simBox.replaceChildren(h('div', { class: 'hscroll' }, list.map(x => h('button', { class: 'tile', onclick: () => openDetail(x) }, coverEl(x), h('div', { class: 'nm' }, x.title)))));
+    } catch (e) { toast(friendlyErr(e), 4200); b.disabled = false; b.textContent = 'Mostrar parecidos'; }
+  } }, 'Mostrar parecidos');
+  simBox.append(loadSim);
+  sheet.replaceChildren(body);
+  sheet.scrollTop = 0;
+}
+
+/* ====== telas ====== */
+function viewHome() {
+  const v = h('div');
+  if (!Object.keys(S.items).length) {
+    v.append(h('div', { class: 'card' },
+      h('h3', null, 'Bem-vindo!'),
+      h('div', { class: 'small muted' }, 'Aqui você guarda o que já assistiu, o que quer ver e recebe indicações. O app começa vazio, só com o que você adicionar.'),
+      h('ol', { class: 'small', style: 'padding-left:18px;margin:10px 0 0' },
+        h('li', null, 'Em Ajustes, cole sua chave grátis do Gemini (leva 1 minuto).'),
+        h('li', null, 'Em Buscar, encontre 5 ou mais títulos que você ama e dê nota.'),
+        h('li', null, 'Volte aqui e peça uma indicação.'))));
+  }
+  if (!hasGemini()) {
+    v.append(h('div', { class: 'card' }, h('h3', null, 'Indicações com IA'), h('div', { class: 'small muted' }, 'Precisam da chave grátis do Gemini.'),
+      h('div', { style: 'margin-top:10px' }, h('button', { class: 'btn', onclick: () => go('settings') }, 'Configurar agora'))));
+  } else {
+    v.append(h('div', { class: 'card' },
+      h('h3', null, 'Pedir indicação'),
+      chips([['all', 'Tudo'], ['anime', 'Animes'], ['serie', 'Séries'], ['filme', 'Filmes']], ui.pickType, t => { ui.pickType = t; render(); }),
+      h('input', { type: 'text', id: 'mood', placeholder: 'Opcional: "algo curto", "comédia", "parecido com..."', value: ui.mood, oninput: e => { ui.mood = e.target.value; } }),
+      h('div', { style: 'margin-top:10px' }, h('button', { class: 'btn', disabled: ui.loading, onclick: askPicks }, ui.loading ? h('span', { class: 'spin' }) : 'Pedir indicação'))));
+  }
+  if (S.picks.length) {
+    v.append(h('div', { class: 'small muted' }, 'Última indicação: ' + (S.picksAt ? new Date(S.picksAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '')));
+    v.append(h('div', { class: 'grid', style: 'margin-top:8px' }, S.picks.map(p => tile(p, true))));
+  } else if (hasGemini()) {
+    v.append(h('div', { class: 'empty' }, 'Nenhuma indicação ainda.'));
+  }
+  if (S.history.length) {
+    v.append(h('details', { class: 'card' }, h('summary', null, 'Histórico de indicações (' + S.history.length + ')'),
+      S.history.slice(0, 10).map(r => h('div', { class: 'small', style: 'margin-top:8px' }, h('b', null, new Date(r.at).toLocaleDateString('pt-BR') + ': '), r.titles.join(', ')))));
+  }
+  return v;
+}
+async function askPicks() {
+  if (ui.loading) return;
+  ui.loading = true; render();
+  try {
+    const items = Object.values(S.items);
+    const rated = items.filter(i => i.rating != null);
+    const list = (arr) => arr.slice(0, 40).map(i => i.title).join('; ') || 'nenhum';
+    const types = ui.pickType === 'all' ? ['anime', 'serie', 'filme'] : [ui.pickType];
+    const n = ui.pickType === 'all' ? 3 : 6;
+    const exclude = items.map(i => i.title).slice(0, 250).join('; ') || 'nenhum';
+    const typeNames = types.map(t => TYPES[t].plural.toLowerCase()).join(', ');
+    const profile = rated.length < 3
+      ? 'O usuário ainda avaliou poucos títulos: sugira títulos populares e bem avaliados, variados.'
+      : `Favoritos (nota 5 ou 5+): ${list(rated.filter(i => rv(i.rating) >= 5))}.\nGostou (nota 4): ${list(rated.filter(i => rv(i.rating) === 4))}.\nNão gostou (nota 0 a 2): ${list(rated.filter(i => rv(i.rating) <= 2))}.`;
+    const prompt = `Você é um indicador de filmes, séries e animes.\n${profile}\nJá tem na lista (NÃO repetir): ${exclude}.\nPedido: ${n} de cada tipo entre: ${typeNames}.${ui.mood.trim() ? '\nPedido extra do usuário: ' + ui.mood.trim() : ''}\nRegras: só títulos reais, já lançados e disponíveis em streaming ou locação no Brasil; use o nome internacional mais conhecido; combine com o gosto acima.\nResponda APENAS um JSON: [{"type":"anime|serie|filme","title":"...","year":2020,"why":"uma frase curta em português dizendo por que combina"}]`;
+    const raw = await geminiTitles(prompt, null);
+    const have = new Set(items.map(keyOf));
+    const picks = raw.filter(p => !have.has(keyOf(p)) && types.includes(p.type));
+    if (!picks.length) throw new Error('Não consegui montar indicações dessa vez. Tente de novo.');
+    S.picks = picks; S.picksAt = Date.now();
+    S.history.unshift({ at: Date.now(), titles: picks.map(p => p.title) });
+    S.history = S.history.slice(0, 30);
+    save();
+  } catch (e) { toast(friendlyErr(e), 4500); }
+  ui.loading = false; render();
+}
+
+function searchBox(onPick, hint) {
+  const wrap = h('div');
+  const input = h('input', { type: 'search', placeholder: hint || 'Buscar anime, série ou filme...', value: ui.searchQ, enterkeyhint: 'search' });
+  const out = h('div');
+  const run = async () => {
+    const q = input.value.trim();
+    ui.searchQ = q;
+    if (q.length < 2) return;
+    out.replaceChildren(h('div', { class: 'empty' }, h('span', { class: 'spin' })));
+    const groups = await Promise.all(['anime', 'serie', 'filme'].map(t => SEARCHERS[t](q).then(r => r, e => ({ error: e }))));
+    out.replaceChildren();
+    ['anime', 'serie', 'filme'].forEach((t, i) => {
+      const g = groups[i];
+      if (g.error) { out.append(h('div', { class: 'small muted', style: 'margin:8px 0' }, TYPES[t].plural + ': busca indisponível agora.')); return; }
+      if (!g.length) return;
+      out.append(h('h3', { class: 'type-' + t, style: 'margin:14px 0 4px' }, TYPES[t].plural));
+      g.forEach(it => out.append(h('div', { class: 'item ' + t, role: 'button', tabindex: '0', onclick: () => onPick(it) },
+        coverEl(it, { noTag: true, badge: false }),
+        h('div', { class: 'grow' }, h('div', { class: 't' }, it.title), h('div', { class: 'small muted' }, [it.year, (it.genres || []).slice(0, 2).join(', ')].filter(Boolean).join(' • '))))));
+    });
+    if (!out.children.length) out.append(h('div', { class: 'empty' }, 'Nada encontrado. Tente o nome em inglês.'));
+  };
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { input.blur(); run(); } });
+  wrap.append(h('div', { class: 'row' }, h('div', { class: 'grow' }, input), h('button', { class: 'btn', onclick: run }, 'Buscar')), out);
+  return wrap;
+}
+function viewSearch() {
+  if (!ui.searchNode) {
+    ui.searchNode = searchBox(it => openDetail(it));
+    ui.searchNode.append(h('div', { class: 'small muted', style: 'margin-top:14px' }, 'Dica: com uma chave grátis do TMDB (em Ajustes) os filmes ganham sinopse em português e parecidos.'));
+  }
+  return ui.searchNode;
+}
+
+function addSheet(status, titleTxt) {
+  const sheet = $('#sheet');
+  $('#sheetWrap').hidden = false;
+  ui.searchQ = '';
+  sheet.replaceChildren(
+    h('div', { class: 'sheetTop' }, h('button', { class: 'btn sec sm', onclick: closeSheet }, 'Fechar')),
+    h('h2', { style: 'margin:0 0 8px;font-size:18px' }, titleTxt),
+    searchBox(it => { setStatus(it, status); toast('Adicionado: ' + it.title); closeSheet(); }, 'Buscar para adicionar...'));
+}
+function nextBlock(it) {
+  if (it.type === 'filme') return null;
+  if (it.next) return h('div', { class: 'small' }, h('span', { class: 'cd type-' + it.type }, countdown(it.next.at)), ' • ', [it.next.ep, whenStr(it.next.at)].filter(Boolean).join(' • '));
+  const ended = ['FINISHED', 'Ended'].includes(it.apiStatus);
+  return h('div', { class: 'small muted' }, it.checkedAt ? (ended ? 'Temporada/série encerrada, sem data nova' : 'Sem data de lançamento divulgada') : 'Buscando datas...');
+}
+function viewWeek() {
+  const v = h('div');
+  const list = byStatus('watching').sort((a, b) => ((a.next && a.next.at) || 9e15) - ((b.next && b.next.at) || 9e15));
+  v.append(h('div', { class: 'row', style: 'justify-content:space-between' }, h('div', { class: 'small muted' }, 'O que você está acompanhando'), h('button', { class: 'btn sec sm', onclick: async () => { toast('Atualizando...'); await refreshTracked(true); toast('Atualizado'); } }, 'Atualizar')));
+  if (!list.length) v.append(h('div', { class: 'empty' }, 'Nada por aqui. Toque no + para adicionar o que você começou a ver.'));
+  list.forEach(it => v.append(rowItem(it, nextBlock(it))));
+  v.append(h('button', { class: 'fab', 'aria-label': 'Adicionar', onclick: () => addSheet('watching', 'Adicionar ao que estou vendo') }, '+'));
+  return v;
+}
+
+function viewLists() {
+  const v = h('div');
+  v.append(chips([['watched', 'Assistidos'], ['queue', 'Fila'], ['waiting', 'Aguardando'], ['profile', 'Perfil']], ui.listTab, t => { ui.listTab = t; ui.limit = 24; render(); }));
+  if (ui.listTab === 'watched') {
+    v.append(chips([['all', 'Todos'], ['anime', 'Animes'], ['serie', 'Séries'], ['filme', 'Filmes']], ui.filter, t => { ui.filter = t; ui.limit = 24; render(); }));
+    const all = byStatus('watched').filter(i => ui.filter === 'all' || i.type === ui.filter).sort((a, b) => (rv(b.rating ?? -1)) - (rv(a.rating ?? -1)) || (b.ratedAt || 0) - (a.ratedAt || 0));
+    if (!all.length) v.append(h('div', { class: 'empty' }, 'Nada assistido ainda. Em Buscar, dê nota ao que você já viu.'));
+    v.append(h('div', { class: 'grid', style: 'margin-top:8px' }, all.slice(0, ui.limit).map(it => tile(it))));
+    if (all.length > ui.limit) v.append(h('div', { style: 'text-align:center;margin-top:14px' }, h('button', { class: 'btn sec', onclick: () => { ui.limit += 24; render(); } }, 'Ver +')));
+  } else if (ui.listTab === 'queue') {
+    const q = byStatus('queue').sort((a, b) => b.addedAt - a.addedAt);
+    if (!q.length) v.append(h('div', { class: 'empty' }, 'Sua fila está vazia. Toque no + para adicionar o que você quer ver.'));
+    q.forEach(it => v.append(rowItem(it)));
+    v.append(h('button', { class: 'fab', onclick: () => addSheet('queue', 'Adicionar à fila') }, '+'));
+  } else if (ui.listTab === 'waiting') {
+    const w = byStatus('waiting').sort((a, b) => ((a.next && a.next.at) || 9e15) - ((b.next && b.next.at) || 9e15));
+    v.append(h('div', { class: 'small muted', style: 'margin-top:6px' }, 'Títulos que você espera continuar. O app mostra a data quando ela for divulgada.'));
+    if (!w.length) v.append(h('div', { class: 'empty' }, 'Nada aguardando. Toque no + para adicionar.'));
+    w.forEach(it => v.append(rowItem(it, nextBlock(it))));
+    v.append(h('button', { class: 'fab', onclick: () => addSheet('waiting', 'Adicionar aos aguardando') }, '+'));
+  } else v.append(viewProfile());
+  return v;
+}
+function viewProfile() {
+  const v = h('div');
+  const rated = Object.values(S.items).filter(i => i.rating != null);
+  if (rated.length < 3) { v.append(h('div', { class: 'empty' }, 'Dê nota a pelo menos 3 títulos para ver seu perfil de gosto.')); return v; }
+  const top = (pred) => {
+    const m = {};
+    rated.filter(pred).forEach(i => (i.genres || []).forEach(g => { m[g] = (m[g] || 0) + 1; }));
+    return Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  };
+  const likes = top(i => rv(i.rating) >= 4), dislikes = top(i => rv(i.rating) <= 2);
+  v.append(h('div', { class: 'card' }, h('h3', null, 'Resumo'),
+    ['anime', 'serie', 'filme'].map(t => {
+      const a = rated.filter(i => i.type === t);
+      if (!a.length) return null;
+      const avg = a.reduce((s, i) => s + Math.min(5, rv(i.rating)), 0) / a.length;
+      return h('div', { style: 'margin:8px 0' }, h('div', { class: 'row', style: 'justify-content:space-between' }, h('span', { class: 'type-' + t }, TYPES[t].plural), h('span', { class: 'small muted' }, a.length + ' • média ' + avg.toFixed(1))), h('div', { class: 'bar' }, h('i', { style: `width:${avg * 20}%` })));
+    })));
+  const gcard = (title, arr, empty) => h('div', { class: 'card' }, h('h3', null, title), arr.length ? h('div', { class: 'row wrap' }, arr.map(([g, c]) => h('span', { class: 'chip on' }, g + ' ×' + c))) : h('div', { class: 'small muted' }, empty));
+  v.append(gcard('Gêneros que você mais curte', likes, 'Ainda sem dados de gênero.'), gcard('Gêneros que você evita', dislikes, 'Nenhum até agora.'));
+  return v;
+}
+
+function viewSettings() {
+  const v = h('div');
+  const nameIn = h('input', { type: 'text', placeholder: 'Seu nome', value: S.settings.name || '' });
+  v.append(h('div', { class: 'card' }, h('h3', null, 'Você'),
+    h('label', { class: 'f' }, 'Seu nome'), nameIn,
+    h('div', { class: 'row wrap', style: 'margin-top:12px' },
+      h('button', { class: 'btn', onclick: () => { S.settings.name = nameIn.value.trim(); save(); toast('Salvo'); render(); } }, 'Salvar nome'),
+      h('button', { class: 'btn sec', onclick: () => openTour() }, 'Rever tutorial'))));
+  const key = h('input', { type: 'password', placeholder: 'Cole a chave do Gemini', value: S.settings.geminiKey || '', autocomplete: 'off' });
+  const tm = h('input', { type: 'password', placeholder: 'Opcional: chave do TMDB', value: S.settings.tmdbKey || '', autocomplete: 'off' });
+  const mdl = h('input', { type: 'text', placeholder: 'Automático (deixe vazio)', value: S.settings.model || '' });
+  v.append(h('div', { class: 'card' },
+    h('h3', null, 'Gemini (indicações e sinopses)'),
+    h('div', { class: 'small muted' }, 'Crie uma chave grátis em ', h('a', { href: 'https://aistudio.google.com/apikey', target: '_blank', rel: 'noopener' }, 'aistudio.google.com/apikey'), ' com sua conta Google. A chave fica só neste aparelho.'),
+    h('label', { class: 'f' }, 'Chave do Gemini'), key,
+    h('label', { class: 'f' }, 'Modelo (avançado)'), mdl,
+    h('label', { class: 'f' }, 'TMDB (filmes com sinopse em português)'), tm,
+    h('div', { class: 'small muted', style: 'margin-top:4px' }, 'Grátis em themoviedb.org/settings/api (pode usar o token de leitura).'),
+    h('div', { class: 'row wrap', style: 'margin-top:14px' },
+      h('button', { class: 'btn', onclick: () => { S.settings.geminiKey = key.value.trim(); S.settings.tmdbKey = tm.value.trim(); S.settings.model = mdl.value.trim(); S.settings.autoModel = ''; save(); toast('Salvo'); } }, 'Salvar'),
+      h('button', { class: 'btn sec', onclick: async ev => {
+        S.settings.geminiKey = key.value.trim(); S.settings.model = mdl.value.trim(); S.settings.autoModel = ''; save();
+        const b = ev.currentTarget; b.disabled = true; b.replaceChildren(h('span', { class: 'spin' }));
+        try { await geminiRaw('Responda apenas: ok', false); toast('Gemini funcionando!'); } catch (e) { toast(friendlyErr(e), 4500); }
+        b.disabled = false; b.textContent = 'Testar Gemini';
+      } }, 'Testar Gemini'))));
+  const box = h('textarea', { placeholder: 'Cole aqui um backup para restaurar' });
+  v.append(h('div', { class: 'card' },
+    h('h3', null, 'Backup'),
+    h('div', { class: 'small muted' }, 'Seus dados ficam só neste aparelho. Copie o backup e guarde (por exemplo, mandando para você mesmo).'),
+    h('div', { class: 'row wrap', style: 'margin:10px 0' },
+      h('button', { class: 'btn sec', onclick: async () => {
+        const data = JSON.stringify({ v: 2, items: S.items, history: S.history });
+        try { await navigator.clipboard.writeText(data); toast('Backup copiado'); } catch (e) { box.value = data; box.select(); toast('Copie o texto abaixo'); }
+      } }, 'Copiar backup')),
+    box,
+    h('div', { style: 'margin-top:10px' }, h('button', { class: 'btn sec', onclick: () => {
+      try {
+        const j = JSON.parse(box.value);
+        if (!j.items || typeof j.items !== 'object') throw 0;
+        if (!confirm('Restaurar vai substituir sua lista atual. Continuar?')) return;
+        S.items = j.items; S.history = j.history || []; save(); toast('Restaurado'); render();
+      } catch (e) { toast('Backup inválido'); }
+    } }, 'Restaurar'))));
+  v.append(h('div', { class: 'card' }, h('h3', null, 'Apagar tudo'),
+    h('div', { class: 'small muted' }, 'Remove sua lista, notas e indicações deste aparelho. As chaves ficam.'),
+    h('div', { style: 'margin-top:10px' }, h('button', { class: 'btn danger', onclick: () => {
+      if (!confirm('Apagar toda a sua lista?')) return;
+      S.items = {}; S.history = []; S.picks = []; save(); toast('Tudo apagado'); render();
+    } }, 'Apagar minha lista'))));
+  v.append(h('div', { class: 'small muted', style: 'text-align:center;margin:16px 0' }, 'Dados: AniList, TVmaze, TMDB, IMDb e Gemini.'));
+  return v;
+}
+
+
+/* ====== tutorial de boas-vindas ====== */
+function openTour() {
+  const wrap = $('#tour');
+  wrap.hidden = false;
+  const N = 6;
+  let step = 0, msg = null;
+  const nm = () => (S.settings.name || '').trim();
+  const finish = dest => {
+    S.settings.tourDone = true; save();
+    wrap.hidden = true; wrap.replaceChildren();
+    if (dest) ui.tab = dest;
+    render(); window.scrollTo(0, 0);
+  };
+  const setMsg = (t, cls) => { if (msg) { msg.textContent = t; msg.className = 'msg ' + (cls || ''); } };
+  const draw = () => {
+    msg = h('div', { class: 'msg' });
+    let body, primary, secondary = null;
+    if (step === 0) {
+      const inp = h('input', { type: 'text', id: 'tourName', placeholder: 'Seu nome', value: S.settings.name || '', autocomplete: 'given-name', enterkeyhint: 'done' });
+      const go1 = () => { const v = inp.value.trim(); if (!v) { setMsg('Digite seu nome para continuar.', 'err'); return; } S.settings.name = v; save(); step = 1; draw(); };
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') go1(); });
+      body = h('div', null, h('div', { class: 'big' }, '👋'), h('h2', null, 'Oi! Eu sou o seu Indicador'),
+        h('p', { class: 'muted' }, 'Seu cantinho para animes, séries e filmes: o que você já viu, o que quer ver e o que está esperando voltar.'),
+        h('label', { class: 'f' }, 'Como você se chama?'), inp, msg);
+      primary = h('button', { class: 'btn', onclick: go1 }, 'Continuar');
+      setTimeout(() => inp.focus(), 50);
+    } else if (step === 1) {
+      body = h('div', null, h('div', { class: 'big' }, '🎬'), h('h2', null, 'Prazer, ' + nm() + '!'),
+        h('p', null, 'Em 1 minuto você deixa tudo pronto. Vou te mostrar como o app funciona e te ajudar a ligar a IA que faz as indicações.'),
+        h('p', { class: 'muted' }, 'O app começa totalmente vazio: só aparece o que você mesmo adicionar. Nada sai do seu celular, a não ser as buscas.'));
+      primary = h('button', { class: 'btn', onclick: () => { step = 2; draw(); } }, 'Mostrar como funciona');
+    } else if (step === 2) {
+      const row = (ic, t, d) => h('div', { class: 'tstep' }, h('div', { class: 'ic' }, ic), h('div', null, h('b', null, t), h('div', { class: 'small muted' }, d)));
+      body = h('div', null, h('h2', null, 'As 5 abas de baixo'),
+        row('🔍', 'Buscar', 'Ache qualquer anime, série ou filme. Toque nele para ver sinopse, trailer e parecidos, e dar uma nota de 0 a 5. O 5+ é para o que você amou e assistiria de novo. Dar nota já marca como assistido.'),
+        row('✨', 'Indicados', 'Peça indicações. Quanto mais notas você der, mais elas combinam com você.'),
+        row('📅', 'Semana', 'O que você está vendo agora, com a contagem para o próximo episódio. Use o + para adicionar.'),
+        row('📚', 'Listas', 'Assistidos, Fila ("quero ver"), Aguardando (nova temporada) e o seu Perfil de gosto.'),
+        row('⚙️', 'Ajustes', 'Chaves, backup da sua lista e este tutorial, quando quiser rever.'));
+      primary = h('button', { class: 'btn', onclick: () => { step = 3; draw(); } }, 'Entendi');
+      secondary = h('button', { class: 'btn sec', onclick: () => { step = 1; draw(); } }, 'Voltar');
+    } else if (step === 3) {
+      const row = (n, node) => h('div', { class: 'tstep' }, h('div', { class: 'n' }, n), h('div', null, node));
+      body = h('div', null, h('h2', null, 'Ligando a IA (de graça)'),
+        h('p', { class: 'muted' }, 'As indicações usam o Gemini, a IA do Google. Você só precisa de uma conta Google (a mesma do Gmail) para criar uma chave grátis. Leva 1 minuto.'),
+        row('1', h('div', null, 'Toque no botão abaixo. Ele abre o Google AI Studio.')),
+        row('2', h('div', null, 'Entre com a sua conta Google, se pedir, e aceite os termos.')),
+        row('3', h('div', null, 'Procure o botão de criar chave de API (algo como ', h('b', null, '"Create API key"'), ' ou ', h('b', null, '"Criar chave de API"'), ') e crie uma.')),
+        row('4', h('div', null, 'Toque em copiar na chave que aparecer (ela costuma começar com ', h('b', null, 'AIza'), ') e volte para este app.')),
+        h('a', { class: 'btn', style: 'display:block;text-align:center;text-decoration:none;margin-top:14px;padding:13px', href: 'https://aistudio.google.com/apikey', target: '_blank', rel: 'noopener' }, 'Abrir o Google AI Studio'),
+        h('p', { class: 'small muted' }, 'Os botões do Google podem mudar de nome com o tempo, mas o caminho é sempre esse. A chave fica salva só no seu celular.'));
+      primary = h('button', { class: 'btn', onclick: () => { step = 4; draw(); } }, 'Já copiei a chave');
+      secondary = h('button', { class: 'btn sec', onclick: () => { step = 2; draw(); } }, 'Voltar');
+    } else if (step === 4) {
+      const inp = h('input', { type: 'password', placeholder: 'Cole a chave aqui', value: S.settings.geminiKey || '', autocomplete: 'off' });
+      const pasteBtn = h('button', { class: 'btn sec', style: 'margin-top:8px', onclick: async () => {
+        try { inp.value = (await navigator.clipboard.readText()).trim(); setMsg(inp.value ? 'Colado. Agora toque em "Testar e salvar".' : 'A área de transferência está vazia.', inp.value ? 'ok' : 'err'); }
+        catch (e) { setMsg('Não consegui ler sozinho. Segure o dedo no campo e escolha Colar.', 'err'); }
+      } }, 'Colar da área de transferência');
+      const test = h('button', { class: 'btn', onclick: async () => {
+        const v = inp.value.trim();
+        if (!v) { setMsg('Cole a chave primeiro.', 'err'); return; }
+        S.settings.geminiKey = v; S.settings.autoModel = ''; save();
+        test.disabled = true; test.replaceChildren(h('span', { class: 'spin' })); setMsg('');
+        try { await geminiRaw('Responda apenas: ok', false); setMsg('Funcionou! Gemini ligado.', 'ok'); setTimeout(() => { step = 5; draw(); }, 700); }
+        catch (e) { S.settings.geminiKey = ''; save(); setMsg(friendlyErr(e), 'err'); test.disabled = false; test.textContent = 'Testar e salvar'; }
+      } }, 'Testar e salvar');
+      body = h('div', null, h('h2', null, 'Cole a chave'), h('p', { class: 'muted' }, 'Cole aqui a chave que você copiou do Google AI Studio.'), inp, pasteBtn, msg);
+      primary = test;
+      secondary = h('button', { class: 'btn sec', onclick: () => { step = 3; draw(); } }, 'Voltar');
+    } else {
+      const hasKey = hasGemini();
+      body = h('div', null, h('div', { class: 'big' }, hasKey ? '🎉' : '👍'), h('h2', null, 'Tudo pronto, ' + nm() + '!'),
+        h('p', null, 'Para as indicações acertarem o seu gosto, comece pela aba Buscar: ache 5 ou mais títulos que você ama e dê nota 5 ou 5+.'),
+        hasKey ? h('p', { class: 'muted' }, 'Depois é só ir em Indicados e tocar em Pedir indicação.')
+               : h('p', { class: 'muted' }, 'Você pulou a chave do Gemini. Sem problema: o resto do app funciona. Para ligar as indicações depois, abra Ajustes.'));
+      primary = h('button', { class: 'btn', onclick: () => finish('search') }, 'Ir para Buscar');
+      secondary = h('button', { class: 'btn sec', onclick: () => finish('home') }, 'Começar');
+    }
+    const skip = step >= 1 && step <= 4 ? h('button', { class: 'btn sec sm', onclick: () => { if (step === 3 || step === 4) { step = 5; draw(); } else finish('home'); } }, step >= 3 ? 'Fazer depois' : 'Pular') : h('span');
+    wrap.replaceChildren(h('div', { class: 'inner' },
+      h('div', { class: 'tourTop' }, h('div', { class: 'dots' }, Array.from({ length: N }, (_, i) => h('i', { class: i === step ? 'on' : '' }))), skip),
+      h('div', { class: 'grow' }, body),
+      h('div', { class: 'tourFoot' }, secondary, primary)));
+    wrap.scrollTop = 0;
+  };
+  draw();
+}
+
+/* ====== navegação ====== */
+const TABS = [['home', '✨', 'Indicados'], ['search', '🔍', 'Buscar'], ['week', '📅', 'Semana'], ['lists', '📚', 'Listas'], ['settings', '⚙️', 'Ajustes']];
+const TITLES = { home: 'Indicados', search: 'Buscar', week: 'Semana', lists: 'Minhas listas', settings: 'Ajustes' };
+function go(t) { ui.tab = t; render(); window.scrollTo(0, 0); if (t === 'week' || t === 'lists') refreshTracked(false); }
+function render() {
+  if (document.activeElement && document.activeElement.id === 'mood') return;
+  const who = (S.settings.name || '').trim();
+  $('#title').textContent = ui.tab === 'home' && who ? 'Oi, ' + who : TITLES[ui.tab];
+  $('#nav').replaceChildren(...TABS.map(([id, ic, lb]) => h('button', { class: ui.tab === id ? 'on' : '', onclick: () => go(id) }, h('span', { class: 'ic' }, ic), lb)));
+  const views = { home: viewHome, search: viewSearch, week: viewWeek, lists: viewLists, settings: viewSettings };
+  $('#view').replaceChildren(views[ui.tab]());
+}
+if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+render();
+if (!S.settings.tourDone) openTour();
+refreshTracked(false);
+setInterval(() => { if (ui.tab === 'week' || ui.tab === 'lists') render(); }, 60000);
+</script>
+</body>
+</html>
