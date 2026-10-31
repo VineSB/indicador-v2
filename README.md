@@ -1,4 +1,4 @@
-# Indicador de Mídia (V2)
+# Indicador FSA (V2)
 
 App para guardar animes, séries e filmes, dar notas e receber indicações pelo Gemini (grátis).
 Começa vazio, sem nenhum dado pré-carregado.

@@ -1,6 +1,6 @@
 {
   "appId": "app.indicador.midia",
-  "appName": "Indicador de Mídia",
+  "appName": "Indicador FSA",
   "webDir": "www",
   "backgroundColor": "#0d0f16",
   "server": {

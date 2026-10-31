@@ -1,6 +1,6 @@
 {
-  "name": "Indicador de Mídia",
-  "short_name": "Indicador",
+  "name": "Indicador FSA",
+  "short_name": "Indicador FSA",
   "description": "Sua lista de animes, séries e filmes com indicações.",
   "start_url": ".",
   "scope": ".",
